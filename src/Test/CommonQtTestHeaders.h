@@ -38,7 +38,11 @@
 #include <QtWidgets/QRadioButton>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QHBoxLayout>
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#include <QtGui/QAction>
+#else
 #include <QtWidgets/QAction>
+#endif
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QMenu>
 #include <QtGui/QDragEnterEvent>

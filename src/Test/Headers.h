@@ -21,7 +21,9 @@
 #define WD_SETUP_H
 
 #include <QtCore/QObject>
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QtCore/QTextCodec>
+#endif
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     #include <QtConcurrent/QtConcurrentRun>

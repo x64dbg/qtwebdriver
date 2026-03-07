@@ -209,7 +209,7 @@ void QWidgetViewCmdExecutor::SendKeys(const ElementId& element, const string16& 
         QString item = QString::fromStdString(std::string(keys.begin(), keys.end()));
         int index = comboBox->findData(item, Qt::DisplayRole);
         comboBox->setCurrentIndex(index);
-        comboBox->activated(item);
+        emit comboBox->activated(index);
         session_->logger().Log(kInfoLogLevel, "ComboBox item '" + item.toStdString() + "' found at position " + std::to_string(index));
         return;
     }
