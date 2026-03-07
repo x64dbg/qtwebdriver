@@ -184,7 +184,6 @@ elseif(APPLE)
     )
 endif()
 
-# Static library
 add_library(chromium_base STATIC
     ${CHROMIUM_BASE_SOURCES}
     ${CHROMIUM_BASE_NET_SOURCES}
@@ -195,8 +194,8 @@ add_library(chromium_base STATIC
 
 target_include_directories(chromium_base
     PUBLIC
-        ${CMAKE_SOURCE_DIR}/inc
-        ${CMAKE_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/inc
+        ${PROJECT_SOURCE_DIR}/src
 )
 
 if(WIN32)
@@ -215,15 +214,7 @@ elseif(LINUX)
     target_link_libraries(chromium_base PUBLIC pthread rt dl)
 endif()
 
-# Shared library (Linux only)
-if(LINUX)
-    add_library(chromium_base_shared SHARED)
-    target_link_libraries(chromium_base_shared PUBLIC chromium_base)
-    set_target_properties(chromium_base_shared PROPERTIES OUTPUT_NAME chromium_base)
-endif()
-
 # Installation
-install(TARGETS chromium_base ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
-if(LINUX AND TARGET chromium_base_shared)
-    install(TARGETS chromium_base_shared LIBRARY DESTINATION lib)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    install(TARGETS chromium_base ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
 endif()

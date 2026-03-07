@@ -59,38 +59,29 @@ set(WEBDRIVER_CORE_SOURCES
     url_command_wrapper.cc
     versioninfo.cc
     webdriver_version.cc
-    ${CMAKE_SOURCE_DIR}/src/third_party/pugixml/pugixml.cpp
+    ${PROJECT_SOURCE_DIR}/src/third_party/pugixml/pugixml.cpp
 )
 
-# Static library
 add_library(WebDriver_core STATIC ${WEBDRIVER_CORE_SOURCES})
 
 # Add mongoose if enabled
 if(WD_BUILD_MONGOOSE)
     target_sources(WebDriver_core PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/third_party/mongoose/mongoose.c
+        ${PROJECT_SOURCE_DIR}/src/third_party/mongoose/mongoose.c
     )
 endif()
 
 target_include_directories(WebDriver_core
     PUBLIC
-        ${CMAKE_SOURCE_DIR}/inc
+        ${PROJECT_SOURCE_DIR}/inc
     PRIVATE
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/src/third_party/mongoose
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/src/third_party/mongoose
 )
 
 target_link_libraries(WebDriver_core PUBLIC chromium_base)
 
-# Shared library (Linux only)
-if(LINUX)
-    add_library(WebDriver_core_shared SHARED)
-    target_link_libraries(WebDriver_core_shared PUBLIC WebDriver_core)
-    set_target_properties(WebDriver_core_shared PROPERTIES OUTPUT_NAME WebDriver_core)
-endif()
-
 # Installation
-install(TARGETS WebDriver_core ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
-if(LINUX AND TARGET WebDriver_core_shared)
-    install(TARGETS WebDriver_core_shared LIBRARY DESTINATION lib)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    install(TARGETS WebDriver_core ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
 endif()

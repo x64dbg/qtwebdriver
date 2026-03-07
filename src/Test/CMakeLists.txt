@@ -110,8 +110,8 @@ target_include_directories(test_widgets
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}
     PRIVATE
-        ${CMAKE_SOURCE_DIR}/inc
-        ${CMAKE_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/inc
+        ${PROJECT_SOURCE_DIR}/src
 )
 
 target_link_libraries(test_widgets PUBLIC ${QT_LIBRARIES})
@@ -204,10 +204,12 @@ if(WD_CONFIG_WEBKIT)
 
     if(NOT WD_BUILD_MONGOOSE)
         target_sources(test_WD_hybrid PRIVATE
-            ${CMAKE_SOURCE_DIR}/src/third_party/mongoose/mongoose.c)
+            ${PROJECT_SOURCE_DIR}/src/third_party/mongoose/mongoose.c)
     endif()
 
-    install(TARGETS test_WD_hybrid RUNTIME DESTINATION bin)
+    if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+        install(TARGETS test_WD_hybrid RUNTIME DESTINATION bin)
+    endif()
 endif()
 
 # ============================================================================
@@ -229,36 +231,9 @@ endif()
 
 if(NOT WD_BUILD_MONGOOSE)
     target_sources(test_WD_hybrid_noWebkit PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/third_party/mongoose/mongoose.c)
+        ${PROJECT_SOURCE_DIR}/src/third_party/mongoose/mongoose.c)
 endif()
 
-install(TARGETS test_WD_hybrid_noWebkit RUNTIME DESTINATION bin)
-
-# ============================================================================
-# test_WD_hybrid_noWebkit_with_shared_libs (Linux only)
-# ============================================================================
-
-if(LINUX)
-    add_executable(test_WD_hybrid_noWebkit_with_shared_libs main.cc)
-    set_target_properties(test_WD_hybrid_noWebkit_with_shared_libs PROPERTIES
-        OUTPUT_NAME WebDriver_noWebkit_sharedLibs)
-
-    target_link_libraries(test_WD_hybrid_noWebkit_with_shared_libs PRIVATE
-        chromium_base_shared WebDriver_core_shared
-        WebDriver_extension_qt_base_shared test_widgets
-    )
-
-    if(WD_CONFIG_QUICK)
-        target_link_libraries(test_WD_hybrid_noWebkit_with_shared_libs PRIVATE
-            WebDriver_extension_qt_quick)
-    else()
-        target_compile_definitions(test_WD_hybrid_noWebkit_with_shared_libs PRIVATE QT_NO_QML)
-    endif()
-
-    if(NOT WD_BUILD_MONGOOSE)
-        target_sources(test_WD_hybrid_noWebkit_with_shared_libs PRIVATE
-            ${CMAKE_SOURCE_DIR}/src/third_party/mongoose/mongoose.c)
-    endif()
-
-    install(TARGETS test_WD_hybrid_noWebkit_with_shared_libs RUNTIME DESTINATION bin)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    install(TARGETS test_WD_hybrid_noWebkit RUNTIME DESTINATION bin)
 endif()

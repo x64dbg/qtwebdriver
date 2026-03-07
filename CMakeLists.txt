@@ -2,11 +2,6 @@ cmake_minimum_required(VERSION 3.16)
 
 project(QtWebDriver VERSION 1.0.0 LANGUAGES CXX C)
 
-# Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 # Options for build configuration
 option(WD_CONFIG_QWIDGET_BASE "Enable QWidget support" ON)
 option(WD_CONFIG_WEBKIT "Enable WebKit support" OFF)
@@ -14,8 +9,18 @@ option(WD_CONFIG_QUICK "Enable Qt Quick support" ON)
 option(WD_CONFIG_PLAYER "Enable player support" OFF)
 option(WD_CONFIG_ONE_KEYRELEASE "Enable one key release" OFF)
 option(WD_BUILD_MONGOOSE "Build with mongoose" ON)
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(BUILD_TESTS "Build test executables" ON)
+
+# Default BUILD_TESTS ON for standalone, OFF as subdirectory
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    option(BUILD_TESTS "Build test executables" ON)
+else()
+    option(BUILD_TESTS "Build test executables" OFF)
+endif()
+
+# C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Platform detection
 if(UNIX AND NOT APPLE)
@@ -36,44 +41,47 @@ else()
     message(FATAL_ERROR "Unsupported Qt version: ${QT_VERSION}. Use 5 or 6.")
 endif()
 
-# Build type
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
-endif()
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
+# Top-level-only settings
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    # Build type
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+    endif()
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
 
-# Output directories
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    # Output directories
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
-# Help find Qt - check common installation locations if not specified
-if(NOT DEFINED CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "")
-    set(QT_SEARCH_PATHS
-        # Windows
-        "C:/Qt/Qt${QT_VERSION}.*/*/msvc*"
-        "C:/Qt/${QT_VERSION}.*/msvc*"
-        # Linux
-        "$ENV{HOME}/Qt/${QT_VERSION}.*/gcc_64"
-        "/opt/qt/${QT_VERSION}.*/gcc_64"
-        "/opt/Qt/${QT_VERSION}.*/gcc_64"
-        "/usr/local/Qt-${QT_VERSION}.*"
-        # macOS
-        "/usr/local/opt/qt@${QT_VERSION}"
-        "/usr/local/opt/qt${QT_VERSION}"
-    )
+    # Help find Qt - check common installation locations if not specified
+    if(NOT DEFINED CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "")
+        set(QT_SEARCH_PATHS
+            # Windows
+            "C:/Qt/Qt${QT_VERSION}.*/*/msvc*"
+            "C:/Qt/${QT_VERSION}.*/msvc*"
+            # Linux
+            "$ENV{HOME}/Qt/${QT_VERSION}.*/gcc_64"
+            "/opt/qt/${QT_VERSION}.*/gcc_64"
+            "/opt/Qt/${QT_VERSION}.*/gcc_64"
+            "/usr/local/Qt-${QT_VERSION}.*"
+            # macOS
+            "/usr/local/opt/qt@${QT_VERSION}"
+            "/usr/local/opt/qt${QT_VERSION}"
+        )
 
-    foreach(search_path ${QT_SEARCH_PATHS})
-        file(GLOB qt_paths ${search_path})
-        if(qt_paths)
-            list(GET qt_paths 0 qt_path)
-            if(EXISTS "${qt_path}")
-                message(STATUS "Found Qt at: ${qt_path}")
-                set(CMAKE_PREFIX_PATH ${qt_path})
-                break()
+        foreach(search_path ${QT_SEARCH_PATHS})
+            file(GLOB qt_paths ${search_path})
+            if(qt_paths)
+                list(GET qt_paths 0 qt_path)
+                if(EXISTS "${qt_path}")
+                    message(STATUS "Found Qt at: ${qt_path}")
+                    set(CMAKE_PREFIX_PATH ${qt_path})
+                    break()
+                endif()
             endif()
-        endif()
-    endforeach()
+        endforeach()
+    endif()
 endif()
 
 # Find Qt
@@ -140,7 +148,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# Common definitions
+# Common definitions (directory-scoped, won't leak to parent)
 add_compile_definitions(
     QT_NO_DEBUG
     QT_GUI_LIB
@@ -187,12 +195,6 @@ if(WD_CONFIG_ONE_KEYRELEASE)
     add_compile_definitions(WD_ENABLE_ONE_KEYRELEASE=1)
 endif()
 
-# Include directories
-include_directories(
-    ${CMAKE_SOURCE_DIR}/inc
-    ${CMAKE_SOURCE_DIR}/src
-)
-
 # Subdirectories
 add_subdirectory(src/base)
 add_subdirectory(src/webdriver)
@@ -202,5 +204,7 @@ if(BUILD_TESTS)
     add_subdirectory(src/Test)
 endif()
 
-# Installation
-install(DIRECTORY inc/ DESTINATION include/qtwebdriver)
+# Installation (only when built standalone)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    install(DIRECTORY inc/ DESTINATION include/qtwebdriver)
+endif()

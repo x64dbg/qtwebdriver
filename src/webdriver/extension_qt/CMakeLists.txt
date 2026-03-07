@@ -39,18 +39,18 @@ set(WEBDRIVER_QT_BASE_SOURCES
     shutdown_command.cc
     q_event_filter.cc
     uinput_manager.cc
-    ${CMAKE_SOURCE_DIR}/src/vnc/vncclient.cc
-    ${CMAKE_SOURCE_DIR}/src/vnc/vncserverparameters.cc
+    ${PROJECT_SOURCE_DIR}/src/vnc/vncclient.cc
+    ${PROJECT_SOURCE_DIR}/src/vnc/vncserverparameters.cc
     vnc_event_dispatcher.cc
     wd_event_dispatcher.cc
     uinput_event_dispatcher.cc
-    ${CMAKE_SOURCE_DIR}/src/third_party/des/d3des.c
+    ${PROJECT_SOURCE_DIR}/src/third_party/des/d3des.c
 )
 
 set(WEBDRIVER_QT_BASE_MOC_HEADERS
-    ${CMAKE_SOURCE_DIR}/inc/extension_qt/q_view_runner.h
+    ${PROJECT_SOURCE_DIR}/inc/extension_qt/q_view_runner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/q_event_filter.h
-    ${CMAKE_SOURCE_DIR}/inc/extension_qt/vncclient.h
+    ${PROJECT_SOURCE_DIR}/inc/extension_qt/vncclient.h
 )
 
 qt_wrap_moc(WEBDRIVER_QT_BASE_MOC_SOURCES ${WEBDRIVER_QT_BASE_MOC_HEADERS})
@@ -62,9 +62,9 @@ add_library(WebDriver_extension_qt_base STATIC
 
 target_include_directories(WebDriver_extension_qt_base
     PUBLIC
-        ${CMAKE_SOURCE_DIR}/inc
+        ${PROJECT_SOURCE_DIR}/inc
     PRIVATE
-        ${CMAKE_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}
 )
 
@@ -97,14 +97,14 @@ if(WD_CONFIG_WEBKIT)
         graphics_web_view_handle.cc
         graphics_web_view_enumerator.cc
         graphics_web_view_executor.cc
-        ${CMAKE_SOURCE_DIR}/src/third_party/webdriver/atoms.cc
+        ${PROJECT_SOURCE_DIR}/src/third_party/webdriver/atoms.cc
     )
 
     set(WEBDRIVER_QT_WEB_MOC_HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/web_view_visualizer.h
-        ${CMAKE_SOURCE_DIR}/inc/extension_qt/qwebviewext.h
+        ${PROJECT_SOURCE_DIR}/inc/extension_qt/qwebviewext.h
         ${CMAKE_CURRENT_SOURCE_DIR}/qwebkit_proxy.h
-        ${CMAKE_SOURCE_DIR}/inc/extension_qt/qnetwork_access_manager_tracer.h
+        ${PROJECT_SOURCE_DIR}/inc/extension_qt/qnetwork_access_manager_tracer.h
     )
 
     qt_wrap_moc(WEBDRIVER_QT_WEB_MOC_SOURCES ${WEBDRIVER_QT_WEB_MOC_HEADERS})
@@ -116,9 +116,9 @@ if(WD_CONFIG_WEBKIT)
 
     target_include_directories(WebDriver_extension_qt_web
         PUBLIC
-            ${CMAKE_SOURCE_DIR}/inc
+            ${PROJECT_SOURCE_DIR}/inc
         PRIVATE
-            ${CMAKE_SOURCE_DIR}/src
+            ${PROJECT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_BINARY_DIR}
     )
 
@@ -165,9 +165,9 @@ if(WD_CONFIG_QUICK)
 
     target_include_directories(WebDriver_extension_qt_quick
         PUBLIC
-            ${CMAKE_SOURCE_DIR}/inc
+            ${PROJECT_SOURCE_DIR}/inc
         PRIVATE
-            ${CMAKE_SOURCE_DIR}/src
+            ${PROJECT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_BINARY_DIR}
     )
 
@@ -185,14 +185,14 @@ endif()
 
 if(WD_CONFIG_QUICK)
     add_library(WebDriver_extension_qt_quick_web STATIC
-        ${CMAKE_SOURCE_DIR}/src/webdriver/dummy.cc
+        ${PROJECT_SOURCE_DIR}/src/webdriver/dummy.cc
     )
 
     target_include_directories(WebDriver_extension_qt_quick_web
         PUBLIC
-            ${CMAKE_SOURCE_DIR}/inc
+            ${PROJECT_SOURCE_DIR}/inc
         PRIVATE
-            ${CMAKE_SOURCE_DIR}/src
+            ${PROJECT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_BINARY_DIR}
     )
 
@@ -204,50 +204,18 @@ if(WD_CONFIG_QUICK)
 endif()
 
 # ============================================================================
-# Shared Libraries (Linux only)
-# ============================================================================
-
-if(LINUX)
-    add_library(WebDriver_extension_qt_base_shared SHARED)
-    target_link_libraries(WebDriver_extension_qt_base_shared PUBLIC WebDriver_extension_qt_base)
-    set_target_properties(WebDriver_extension_qt_base_shared PROPERTIES
-        OUTPUT_NAME WebDriver_extension_qt_base
-    )
-
-    if(WD_CONFIG_WEBKIT)
-        add_library(WebDriver_extension_qt_web_shared SHARED)
-        target_link_libraries(WebDriver_extension_qt_web_shared PUBLIC WebDriver_extension_qt_web)
-        set_target_properties(WebDriver_extension_qt_web_shared PROPERTIES
-            OUTPUT_NAME WebDriver_extension_qt_web
-        )
-    endif()
-
-    if(WD_CONFIG_QUICK)
-        add_library(WebDriver_extension_qt_quick_shared SHARED)
-        target_link_libraries(WebDriver_extension_qt_quick_shared PUBLIC WebDriver_extension_qt_quick)
-        set_target_properties(WebDriver_extension_qt_quick_shared PROPERTIES
-            OUTPUT_NAME WebDriver_extension_qt_quick
-        )
-
-        add_library(WebDriver_extension_qt_quick_web_shared SHARED)
-        target_link_libraries(WebDriver_extension_qt_quick_web_shared PUBLIC WebDriver_extension_qt_quick_web)
-        set_target_properties(WebDriver_extension_qt_quick_web_shared PROPERTIES
-            OUTPUT_NAME WebDriver_extension_qt_quick_web
-        )
-    endif()
-endif()
-
-# ============================================================================
 # Installation
 # ============================================================================
 
-install(TARGETS WebDriver_extension_qt_base ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    install(TARGETS WebDriver_extension_qt_base ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
 
-if(WD_CONFIG_WEBKIT)
-    install(TARGETS WebDriver_extension_qt_web ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
-endif()
+    if(WD_CONFIG_WEBKIT)
+        install(TARGETS WebDriver_extension_qt_web ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
+    endif()
 
-if(WD_CONFIG_QUICK)
-    install(TARGETS WebDriver_extension_qt_quick WebDriver_extension_qt_quick_web
-        ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
+    if(WD_CONFIG_QUICK)
+        install(TARGETS WebDriver_extension_qt_quick WebDriver_extension_qt_quick_web
+            ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
+    endif()
 endif()
