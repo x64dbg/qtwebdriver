@@ -35,9 +35,17 @@ bool CreateSession::DoesPost() const { return true; }
 void CreateSession::ExecutePost(Response* const response) {
     const DictionaryValue* desired_caps_dict;
     const DictionaryValue* required_caps_dict = NULL;
-    if (!GetDictionaryParameter("desiredCapabilities", &desired_caps_dict)) {
+
+    // Support both W3C WebDriver protocol (capabilities) and JSONWire protocol (desiredCapabilities)
+    const DictionaryValue* capabilities_dict = NULL;
+    if (GetDictionaryParameter("capabilities", &capabilities_dict)) {
+        // W3C format: capabilities.alwaysMatch or capabilities directly
+        if (!capabilities_dict->GetDictionary("alwaysMatch", &desired_caps_dict)) {
+            desired_caps_dict = capabilities_dict;
+        }
+    } else if (!GetDictionaryParameter("desiredCapabilities", &desired_caps_dict)) {
         response->SetError(new Error(
-            kBadRequest, "Missing or invalid 'desiredCapabilities'"));
+            kBadRequest, "Missing or invalid 'capabilities' or 'desiredCapabilities'"));
         return;
     }
 
@@ -123,15 +131,16 @@ void CreateSession::ExecutePost(Response* const response) {
         session->logger().Log(kWarningLogLevel, "Error in CreateSession::SetWindowBounds. Can't create window with desired capabilities");
     }
 
-    // Redirect to a relative URI. Although prohibited by the HTTP standard,
-    // this is what the IEDriver does. Finding the actual IP address is
-    // difficult, and returning the hostname causes perf problems with the python
-    // bindings on Windows.
-    std::ostringstream stream;
-    stream << Server::GetInstance()->url_base() << "/session/"
-            << session->id();
-    response->SetStatus(kSeeOther);
-    response->SetValue(Value::CreateStringValue(stream.str()));
+    // Return session data in W3C WebDriver format
+    // Compatible with both Selenium 3 (JSONWire) and Selenium 4 (W3C)
+    DictionaryValue* session_data = new DictionaryValue();
+    session_data->SetString("sessionId", session->id());
+
+    DictionaryValue* caps = session->capabilities().caps->DeepCopy();
+    session_data->Set("capabilities", caps);
+
+    response->SetValue(session_data);
+    response->SetStatus(kSuccess);
 }
 
 bool CreateSession::FindAndAttachView(Session* session, const std::string& name, ViewId* viewId) {

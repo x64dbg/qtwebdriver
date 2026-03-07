@@ -69,12 +69,21 @@ WindowCommand::WindowCommand(
 
 WindowCommand::~WindowCommand() {}
 
+bool WindowCommand::DoesGet() const {
+    return true;
+}
+
 bool WindowCommand::DoesPost() const {
     return true;
 }
 
 bool WindowCommand::DoesDelete() const {
     return true;
+}
+
+void WindowCommand::ExecuteGet(Response* const response) {
+    // W3C WebDriver: GET /session/{id}/window returns current window handle
+    response->SetValue(Value::CreateStringValue(session_->current_view().id()));
 }
 
 void WindowCommand::ExecutePost(Response* const response) {

@@ -51,7 +51,7 @@ private:
 };
 
 /// Switches to the given window as the default window to execute commands on
-/// or closes it.
+/// or closes it. GET returns the current window handle (W3C).
 /// REST URL: /session/:sessionId/window
 class WindowCommand : public WebDriverCommand {
 public:
@@ -59,8 +59,10 @@ public:
                 const base::DictionaryValue* parameters);
     virtual ~WindowCommand();
 
+    virtual bool DoesGet() const OVERRIDE;
     virtual bool DoesPost() const OVERRIDE;
     virtual bool DoesDelete() const OVERRIDE;
+    virtual void ExecuteGet(Response* const response) OVERRIDE;
     virtual void ExecutePost(Response* const response) OVERRIDE;
     virtual void ExecuteDelete(Response* const response) OVERRIDE;
 

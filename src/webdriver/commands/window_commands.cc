@@ -227,10 +227,18 @@ bool WindowMaximizeCommand::DoesPost() const {
 }
 
 void WindowMaximizeCommand::ExecutePost(Response* const response) {
-    // Path segment: "/session/$sessionId/window/$windowHandle/maximize"
+    // Legacy path: "/session/$sessionId/window/$windowHandle/maximize"
+    // W3C path: "/session/$sessionId/window/maximize"
     ViewId window_id;
-    if (!GetWindowId(GetPathVariable(4), session_->current_view(), &window_id, response))
-        return;
+
+    if (path_segments_.size() == 5) {
+        // Legacy format with explicit window handle
+        if (!GetWindowId(GetPathVariable(4), session_->current_view(), &window_id, response))
+            return;
+    } else {
+        // W3C format - use current window
+        window_id = session_->current_view();
+    }
 
     ExecutorPtr executor(ViewCmdExecutorFactory::GetInstance()->CreateExecutor(session_, window_id));
     if (NULL == executor.get()) {
