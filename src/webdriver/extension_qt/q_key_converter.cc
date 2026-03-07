@@ -117,11 +117,13 @@ bool QKeyConverter::KeyCodeFromSpecialWebDriverKey(char16 key, Qt::Key* key_code
         index < static_cast<int>(arraysize(kSpecialWebDriverKeys));
     if (is_special_key)
         *key_code = kSpecialWebDriverKeys[index];
+#if 0
     else {
         // Key_Escape = 0x01000000. Offset from this for undefined keys
         int qtValue = 0x01000000 + index; 
         *key_code =  static_cast<Qt::Key>(qtValue);
     }
+#endif
     return is_special_key;
 }
 
@@ -276,6 +278,8 @@ bool QKeyConverter::ConvertKeysToWebKeyEvents(const string16& client_keys,
             if (key_code != Qt::Key_unknown) {
 //              unmodified_text = ConvertKeyCodeToText(key_code, 0);
 //              modified_text = ConvertKeyCodeToText(key_code, all_modifiers);
+            } else {
+                key_code = (Qt::Key)key;
             }
 
             if (unmodified_text.empty() || modified_text.empty()) {
