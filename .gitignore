@@ -18,5 +18,5 @@ report/*
 /docs/
 /mocs/
 build_cmake.bat
-/build-*
+/build*
 .DS_Store
