@@ -53,6 +53,7 @@
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QListView>
+#include <QtWidgets/QTableView>
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
 #include <QtGui/QAction>
 #else
@@ -200,6 +201,16 @@ void QWidgetViewCmdExecutor::SendKeys(const ElementId& element, const string16& 
 
     if (!pWidget->isEnabled()) {
         *error = new Error(kInvalidElementState);
+        return;
+    }
+
+    QComboBox *comboBox = qobject_cast<QComboBox*>(pWidget);
+    if (NULL != comboBox) {
+        QString item = QString::fromStdString(std::string(keys.begin(), keys.end()));
+        int index = comboBox->findData(item, Qt::DisplayRole);
+        comboBox->setCurrentIndex(index);
+        comboBox->activated(item);
+        session_->logger().Log(kInfoLogLevel, "ComboBox item '" + item.toStdString() + "' found at position " + std::to_string(index));
         return;
     }
 
@@ -598,6 +609,37 @@ void QWidgetViewCmdExecutor::GetAttribute(const ElementId& element, const std::s
     QVariant propertyValue = pElement->property(key.c_str());
     Value* val = NULL;
 
+    if (key == "foregroundColor") {
+        QWidget* pWidget = getWidget(element, error);
+        if (NULL == pWidget)
+            return;
+        const QPalette palette = pWidget->palette();
+        const QColor fg = palette.color(pWidget->foregroundRole());
+        val = Value::CreateStringValue(fg.name().toStdString());
+    } else if (key == "backgroundColor") {
+        QWidget* pWidget = getWidget(element, error);
+        if (NULL == pWidget)
+            return;
+        const QPalette palette = pWidget->palette();
+        const QColor bg = palette.color(pWidget->backgroundRole());
+        val = Value::CreateStringValue(bg.name().toStdString());
+    } else if (key == "items") {
+        QWidget* pWidget = getWidget(element, error);
+        if (NULL == pWidget)
+            return;
+        QComboBox *comboBox = qobject_cast<QComboBox*>(pWidget);
+        if (NULL != comboBox) {
+            QString items;
+            QAbstractItemModel* model = comboBox->model();
+            if (NULL != model) {
+                for (int i = 0; i < model->rowCount(); ++i) {
+                    items.append(model->index(i, 0).data(Qt::DisplayRole).toString() + "\n");
+                }
+            }
+            val = Value::CreateStringValue(items.toStdString());
+        }
+    }
+
     if (propertyValue.isValid()) {
         // convert QVariant to base::Value
         if (propertyValue.canConvert<QString>()) {
@@ -840,6 +882,13 @@ void QWidgetViewCmdExecutor::GetElementText(const ElementId& element, std::strin
         }    
     }
 
+    if (pElement->metaObject()->indexOfMethod("wdTextRepresentation()") != -1) {
+        QString textRepresentation;
+        QMetaObject::invokeMethod(pElement, "wdTextRepresentation", Qt::DirectConnection, Q_RETURN_ARG(QString, textRepresentation));
+        *element_text = textRepresentation.toStdString();
+        return;
+    }
+
     QComboBox *comboBox = qobject_cast<QComboBox*>(pElement);
     if (NULL != comboBox) {
         *element_text = comboBox->currentText().toStdString();
@@ -867,6 +916,22 @@ void QWidgetViewCmdExecutor::GetElementText(const ElementId& element, std::strin
             list.append(index.data().toString());
         }
         *element_text = list.join("\n").toStdString();
+        return;
+    }
+
+    QTableView *tableView = qobject_cast<QTableView*>(pElement);
+    if (NULL != tableView) {
+        QAbstractItemModel *model = tableView->model();
+        if (NULL != model) {
+            QStringList rows;
+            for (int row = 0; row < model->rowCount(); ++row) {
+                QStringList items;
+                for (int col = 0; col < model->columnCount(); ++col)
+                    items.append(model->index(row, col).data().toString());
+                rows.append(items.join("\t"));
+            }
+            *element_text = rows.join("\n").toStdString();
+        }
         return;
     }
 
