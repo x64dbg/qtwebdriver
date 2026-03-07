@@ -80,10 +80,10 @@
 #endif
 
 // Compiler detection.
-#if defined(__GNUC__)
-#define COMPILER_GCC 1
-#elif defined(_MSC_VER)
+#if defined(_MSC_VER)
 #define COMPILER_MSVC 1
+#elif defined(__GNUC__)
+#define COMPILER_GCC 1
 #else
 #error Please add support for your compiler in build/build_config.h
 #endif
@@ -107,6 +107,11 @@
 #define ARCH_CPU_MIPSEB 1
 #define ARCH_CPU_32_BITS 1
 #define ARCH_CPU_BIG_ENDIAN 1
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#define ARCH_CPU_ARM_FAMILY 1
+#define ARCH_CPU_ARM64 1
+#define ARCH_CPU_64_BITS 1
+#define ARCH_CPU_LITTLE_ENDIAN 1
 #elif defined(__ARMEL__)
 #define ARCH_CPU_ARM_FAMILY 1
 #define ARCH_CPU_ARMEL 1
