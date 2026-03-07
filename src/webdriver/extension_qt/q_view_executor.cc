@@ -31,7 +31,11 @@
 #include <QtCore/QDebug>
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QtWidgets/QApplication>
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#include <QtGui/QScreen>
+#else
 #include <QtWidgets/QDesktopWidget>
+#endif
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QInputDialog>
 #include <QtCore/QDateTime>
@@ -47,15 +51,27 @@
 #include <QtGui/QInputDialog>
 #endif
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+// from qtbase/src/gui/kernel/qwindowsysteminterface.cpp
+namespace QTest
+{
+    QPointingDevice* createTouchDevice(QInputDevice::DeviceType devType, QInputDevice::Capabilities caps);
+}
+#endif
+
 namespace webdriver {
 
 QViewCmdExecutor::QViewCmdExecutor(Session* session, ViewId viewId)
     : ViewCmdExecutor(session, viewId) {
-
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    pointingDevice = QTest::createTouchDevice(QInputDevice::DeviceType::TouchScreen, QInputDevice::Capability::Pressure);
+#endif
 }
 
 QViewCmdExecutor::~QViewCmdExecutor() {
-
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    delete pointingDevice;
+#endif
 };
 
 QWidget* QViewCmdExecutor::getView(const ViewId& viewId, Error** error) {
@@ -121,7 +137,11 @@ void QViewCmdExecutor::Maximize(Error** error) {
         return;
     }
 
-    view->setGeometry(QApplication::desktop()->rect());    
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    view->setGeometry(QApplication::primaryScreen()->availableGeometry());
+#else
+    view->setGeometry(QApplication::desktop()->rect());
+#endif
 }
 
 void QViewCmdExecutor::GetScreenShot(std::string* png, Error** error) {
@@ -169,7 +189,7 @@ void QViewCmdExecutor::SendKeys(const string16& keys, Error** error) {
         return;
 
     std::string err_msg;
-    std::vector<QKeyEvent> key_events;
+    std::vector<QKeyEvent*> key_events;
     int modifiers = session_->get_sticky_modifiers();
 
     if (!QKeyConverter::ConvertKeysToWebKeyEvents(keys,
@@ -185,15 +205,16 @@ void QViewCmdExecutor::SendKeys(const string16& keys, Error** error) {
 
     session_->set_sticky_modifiers(modifiers);
 
-    std::vector<QKeyEvent>::iterator it = key_events.begin();
+    std::vector<QKeyEvent*>::iterator it = key_events.begin();
     while (it != key_events.end()) {
 
-        bool consumed = WDEventDispatcher::getInstance()->dispatch(&(*it));
+        bool consumed = WDEventDispatcher::getInstance()->dispatch(*it);
 
         if (!consumed)
-            qApp->sendEvent(view, &(*it));
+            qApp->sendEvent(view, *it);
         ++it;
     }
+    qDeleteAll(key_events);
 }
 
 void QViewCmdExecutor::Close(Error** error) {
@@ -367,10 +388,15 @@ void QViewCmdExecutor::GetOrientation(std::string *orientation, Error **error)
 
 QTouchEvent::TouchPoint QViewCmdExecutor::createTouchPoint(Qt::TouchPointState state, QPointF &point)
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    QEventPoint touchPoint(1, static_cast<QEventPoint::State>(state), point, point);
+    // TODO add pressure
+#else
     QTouchEvent::TouchPoint touchPoint(1);
     touchPoint.setPos(point);
     touchPoint.setState(state);
     touchPoint.setPressure(1);
+#endif
     return touchPoint;
 }
 
@@ -392,7 +418,9 @@ QTouchEvent* QViewCmdExecutor::createSimpleTouchEvent(QEvent::Type eventType, Qt
 
 QTouchEvent* QViewCmdExecutor::createTouchEvent(QEvent::Type eventType, Qt::TouchPointStates touchPointStates, const QList<QTouchEvent::TouchPoint> &touchPoints)
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    QTouchEvent* touchEvent = new QTouchEvent(eventType, pointingDevice, Qt::NoModifier, touchPoints);
+#elif (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     QTouchEvent *touchEvent = new QTouchEvent(eventType, &touchDevice, Qt::NoModifier, touchPointStates, touchPoints);
     QDateTime current = QDateTime::currentDateTime();
     ulong timestame = current.toMSecsSinceEpoch() & (((qint64)1<<(sizeof(ulong)*8))-1);
@@ -423,10 +451,15 @@ QTouchEvent* QViewCmdExecutor::create2PointTouchEvent(QEvent::Type eventType, Qt
 
 QTouchEvent::TouchPoint QViewCmdExecutor::createTouchPointWithId(Qt::TouchPointState state, QPointF &point, int id)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QEventPoint touchPoint(id, static_cast<QEventPoint::State>(state), point, point);
+    // TODO add pressure
+#else
     QTouchEvent::TouchPoint touchPoint(id);
     touchPoint.setPos(point);
     touchPoint.setState(state);
     touchPoint.setPressure(1);
+#endif
 
     return touchPoint;
 }

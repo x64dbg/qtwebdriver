@@ -167,7 +167,7 @@ void Quick2ViewCmdExecutor::SendKeys(const ElementId& element, const string16& k
     }
 
     std::string err_msg;
-    std::vector<QKeyEvent> key_events;
+    std::vector<QKeyEvent*> key_events;
     int modifiers = Qt::NoModifier;
 
     if (!QKeyConverter::ConvertKeysToWebKeyEvents(keys,
@@ -181,11 +181,16 @@ void Quick2ViewCmdExecutor::SendKeys(const ElementId& element, const string16& k
         return;
     }
 
-    std::vector<QKeyEvent>::iterator it = key_events.begin();
+    std::vector<QKeyEvent*>::iterator it = key_events.begin();
     while (it != key_events.end()) {
-        view->sendEvent(pItem, &(*it));
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+        QGuiApplication::sendEvent(pItem, *it);
+#else
+        view->sendEvent(pItem, *it);
+#endif
         ++it;
     }
+    qDeleteAll(key_events);
 }
 
 void Quick2ViewCmdExecutor::SendKeys(const string16& keys, Error** error) {
@@ -194,7 +199,7 @@ void Quick2ViewCmdExecutor::SendKeys(const string16& keys, Error** error) {
         return;
 
     std::string err_msg;
-    std::vector<QKeyEvent> key_events;
+    std::vector<QKeyEvent*> key_events;
     int modifiers = session_->get_sticky_modifiers();
 
     if (!QKeyConverter::ConvertKeysToWebKeyEvents(keys,
@@ -212,20 +217,26 @@ void Quick2ViewCmdExecutor::SendKeys(const string16& keys, Error** error) {
 
     session_->set_sticky_modifiers(modifiers);
 
-    std::vector<QKeyEvent>::iterator it = key_events.begin();
+    std::vector<QKeyEvent*>::iterator it = key_events.begin();
     while (it != key_events.end()) {
 
-        bool consumed = WDEventDispatcher::getInstance()->dispatch(&(*it));
+        bool consumed = WDEventDispatcher::getInstance()->dispatch(*it);
 
         if (!consumed) {
             if (NULL != pFocusItem) {
-                view->sendEvent(pFocusItem, &(*it));
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+                QGuiApplication::sendEvent(pFocusItem, *it);
+#else
+                view->sendEvent(pFocusItem, *it);
+#endif
+
             } else {
-                QGuiApplication::sendEvent(view, &(*it));
+                QGuiApplication::sendEvent(view, *it);
             }
         }
         ++it;
     }
+    qDeleteAll(key_events);
 }
 
 void Quick2ViewCmdExecutor::MouseDoubleClick(Error** error) {
@@ -356,17 +367,27 @@ void Quick2ViewCmdExecutor::MouseWheel(const int delta, Error **error) {
 
     // ignore scrolling distance in pixels on screen,
     QPoint pixelDelta(0, 0);
-
     QPoint angleDelta(0, delta);
 
-    QWheelEvent *wheelEvent = new QWheelEvent(scenePoint,
-                                              screenPos,
-                                              pixelDelta,
-                                              angleDelta,
-                                              delta,
-                                              Qt::Vertical,
-                                              Qt::NoButton,
-                                              Qt::NoModifier);
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    QWheelEvent* wheelEvent = new QWheelEvent(scenePoint,
+        screenPos,
+        pixelDelta,
+        angleDelta,
+        Qt::NoButton,
+        Qt::NoModifier,
+        Qt::NoScrollPhase,
+        false);
+#else
+    QWheelEvent* wheelEvent = new QWheelEvent(scenePoint,
+        screenPos,
+        pixelDelta,
+        angleDelta,
+        delta,
+        Qt::Vertical,
+        Qt::NoButton,
+        Qt::NoModifier);
+#endif
 
     QGuiApplication::postEvent(view, wheelEvent);
 }

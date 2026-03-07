@@ -53,7 +53,11 @@
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QListView>
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#include <QtGui/QAction>
+#else
 #include <QtWidgets/QAction>
+#endif
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QTabWidget>
@@ -200,7 +204,7 @@ void QWidgetViewCmdExecutor::SendKeys(const ElementId& element, const string16& 
     }
 
     std::string err_msg;
-    std::vector<QKeyEvent> key_events;
+    std::vector<QKeyEvent*> key_events;
     int modifiers = Qt::NoModifier;
 
     if (!QKeyConverter::ConvertKeysToWebKeyEvents(keys,
@@ -214,11 +218,13 @@ void QWidgetViewCmdExecutor::SendKeys(const ElementId& element, const string16& 
         return;
     }
 
-    std::vector<QKeyEvent>::iterator it = key_events.begin();
+    std::vector<QKeyEvent*>::iterator it = key_events.begin();
     while (it != key_events.end()) {
-        qApp->sendEvent(pWidget, &(*it));
+        QKeyEvent * key_event = *it;
+        qApp->sendEvent(pWidget, key_event);
         ++it;
     }
+    qDeleteAll(key_events);
 }
 
 void QWidgetViewCmdExecutor::GetElementScreenShot(const ElementId& element, std::string* png, Error** error) {
@@ -388,7 +394,14 @@ void QWidgetViewCmdExecutor::MouseWheel(const int delta, Error **error){
     QPoint globalPos = receiverWidget->mapToGlobal(point);
     session_->logger().Log(kFineLogLevel, base::StringPrintf("MouseWheel, screen: (%4d, %4d)", globalPos.x(), globalPos.y()));
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    QPoint pixelDelta(0, 0);
+    QPoint angleDelta(0, delta);
+
+    QWheelEvent* wheelEvent = new QWheelEvent(point, globalPos, pixelDelta, angleDelta, Qt::NoButton, Qt::NoModifier, Qt::NoScrollPhase, false);
+#else
     QWheelEvent *wheelEvent = new QWheelEvent(point, globalPos, delta, Qt::NoButton, Qt::NoModifier);
+#endif
 
     QApplication::postEvent(receiverWidget, wheelEvent);
 }

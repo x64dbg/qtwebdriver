@@ -165,9 +165,9 @@ bool QKeyConverter::ConvertKeysToWebKeyEvents(const string16& client_keys,
                                const Logger& logger,
                                bool release_modifiers,
                                int* modifiers,
-                               std::vector<QKeyEvent>* client_key_events,
+                               std::vector<QKeyEvent*>* client_key_events,
                                std::string* error_msg) {
-    std::vector<QKeyEvent> key_events;
+    std::vector<QKeyEvent*> key_events;
 
     string16 keys = client_keys;
     // Add an implicit NULL character to the end of the input to depress all
@@ -185,16 +185,16 @@ bool QKeyConverter::ConvertKeysToWebKeyEvents(const string16& client_keys,
             // Release all modifier keys and clear |stick_modifiers|.
             if (sticky_modifiers & Qt::ShiftModifier)
                 key_events.push_back(
-                    QKeyEvent(QEvent::KeyRelease, Qt::Key_Shift, Qt::NoModifier));
+                    new QKeyEvent(QEvent::KeyRelease, Qt::Key_Shift, Qt::NoModifier));
             if (sticky_modifiers & Qt::ControlModifier)
                 key_events.push_back(
-                    QKeyEvent(QEvent::KeyRelease, Qt::Key_Control, Qt::NoModifier));
+                    new QKeyEvent(QEvent::KeyRelease, Qt::Key_Control, Qt::NoModifier));
             if (sticky_modifiers & Qt::AltModifier)
                 key_events.push_back(
-                    QKeyEvent(QEvent::KeyRelease, Qt::Key_Alt, Qt::NoModifier));
+                    new QKeyEvent(QEvent::KeyRelease, Qt::Key_Alt, Qt::NoModifier));
             if (sticky_modifiers & Qt::MetaModifier)
                 key_events.push_back(
-                    QKeyEvent(QEvent::KeyRelease, Qt::Key_Meta, Qt::NoModifier));
+                    new QKeyEvent(QEvent::KeyRelease, Qt::Key_Meta, Qt::NoModifier));
             sticky_modifiers = Qt::NoModifier;
             continue;
         }
@@ -225,10 +225,10 @@ bool QKeyConverter::ConvertKeysToWebKeyEvents(const string16& client_keys,
             }
             if (modifier_down)
                 key_events.push_back(
-                        QKeyEvent(QEvent::KeyPress, key_code, sticky_modifiers));
+                        new QKeyEvent(QEvent::KeyPress, key_code, sticky_modifiers));
             else
                 key_events.push_back(
-                        QKeyEvent(QEvent::KeyRelease, key_code, sticky_modifiers));
+                        new QKeyEvent(QEvent::KeyRelease, key_code, sticky_modifiers));
             continue;
         }
 
@@ -319,21 +319,21 @@ bool QKeyConverter::ConvertKeysToWebKeyEvents(const string16& client_keys,
                 !(sticky_modifiers & kModifiers[i].mask);
             if (necessary_modifiers[i]) {
                 key_events.push_back(
-                    QKeyEvent(QEvent::KeyPress, kModifiers[i].key_code, sticky_modifiers, QString::null, autoPress));
+                    new QKeyEvent(QEvent::KeyPress, kModifiers[i].key_code, sticky_modifiers, QString(), autoPress));
             }
         }
 
         if (unmodified_text.length() || modified_text.length()) {
-            key_events.push_back(QKeyEvent(QEvent::KeyPress, key_code, all_modifiers, unmodified_text.c_str(), autoPress));
+            key_events.push_back(new QKeyEvent(QEvent::KeyPress, key_code, all_modifiers, unmodified_text.c_str(), autoPress));
             if (sendRelease) {
-                key_events.push_back(QKeyEvent(QEvent::KeyRelease, key_code, all_modifiers, unmodified_text.c_str(), autoRelease));      
+                key_events.push_back(new QKeyEvent(QEvent::KeyRelease, key_code, all_modifiers, unmodified_text.c_str(), autoRelease));      
             }
         }
         else
         {
-            key_events.push_back(QKeyEvent(QEvent::KeyPress, key_code, all_modifiers, QString::null, autoPress));
+            key_events.push_back(new QKeyEvent(QEvent::KeyPress, key_code, all_modifiers, QString(), autoPress));
             if (sendRelease) {
-                key_events.push_back(QKeyEvent(QEvent::KeyRelease, key_code, all_modifiers, QString::null, autoRelease));
+                key_events.push_back(new QKeyEvent(QEvent::KeyRelease, key_code, all_modifiers, QString(), autoRelease));
             }
         }
 
@@ -342,13 +342,14 @@ bool QKeyConverter::ConvertKeysToWebKeyEvents(const string16& client_keys,
             for (int i = 2; i > -1; --i) {
                 if (necessary_modifiers[i]) {
                     key_events.push_back(
-                        QKeyEvent(QEvent::KeyRelease, kModifiers[i].key_code, sticky_modifiers, QString::null, autoRelease));
+                        new QKeyEvent(QEvent::KeyRelease, kModifiers[i].key_code, sticky_modifiers, QString(), autoRelease));
                 }
             }
         }
     }
 
     client_key_events->swap(key_events);
+    qDeleteAll(key_events);
     *modifiers = sticky_modifiers;
     return true;
 }
