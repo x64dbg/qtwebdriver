@@ -17,11 +17,6 @@ report/*
 /build/
 /docs/
 /mocs/
-wd.gypi
-/wd.Makefile
-/Makefile
-/WebDriver.target.mk
-/WebDriverTest.target.mk
-/src/webdriver/webdriver_version.cc
+build_cmake.bat
 /build-*
 .DS_Store

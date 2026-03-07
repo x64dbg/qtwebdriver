@@ -47,8 +47,7 @@ using base::Time;
 using base::TimeDelta;
 using base::TimeTicks;
 
-// C++11 type name replaced by similar
-typedef size_t uint32_t;
+// uint32_t is now provided by <cstdint> in C++11+
 
 namespace {
 
