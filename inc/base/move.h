@@ -194,18 +194,10 @@
 // The workaround is to explicitly declare your copy constructor.
 //
 #define MOVE_ONLY_TYPE_FOR_CPP_03(type, rvalue_type) \
- private: \
-  struct rvalue_type : public type { \
-    rvalue_type(); \
-    ~rvalue_type(); \
-    rvalue_type(const rvalue_type&); \
-    void operator=(const rvalue_type&); \
-  }; \
-  type(type&); \
-  void operator=(type&); \
  public: \
-  operator rvalue_type&() { return *reinterpret_cast<rvalue_type*>(this); } \
-  type Pass() { return type(*reinterpret_cast<rvalue_type*>(this)); } \
- private:
+  type Pass() { return static_cast<type&&>(*this); } \
+ private: \
+  type(const type&) = delete; \
+  void operator=(const type&) = delete;
 
 #endif  // BASE_MOVE_H_

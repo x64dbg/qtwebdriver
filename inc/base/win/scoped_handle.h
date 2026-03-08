@@ -48,8 +48,8 @@ class GenericScopedHandle {
     Set(handle);
   }
 
-  // Move constructor for C++03 move emulation of this type.
-  GenericScopedHandle(RValue& other) : handle_(Traits::NullHandle()) {
+  // Move constructor.
+  GenericScopedHandle(GenericScopedHandle&& other) : handle_(Traits::NullHandle()) {
     Set(other.Take());
   }
 
@@ -61,8 +61,8 @@ class GenericScopedHandle {
     return Traits::IsHandleValid(handle_);
   }
 
-  // Move operator= for C++03 move emulation of this type.
-  GenericScopedHandle& operator=(RValue& other) {
+  // Move assignment.
+  GenericScopedHandle& operator=(GenericScopedHandle&& other) {
     if (this != &other) {
       Set(other.Take());
     }
