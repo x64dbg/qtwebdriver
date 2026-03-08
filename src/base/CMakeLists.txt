@@ -198,6 +198,14 @@ target_include_directories(chromium_base
         ${PROJECT_SOURCE_DIR}/src
 )
 
+# Suppress Clang warnings for unavoidable Win32 WndProc function-pointer patterns
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(chromium_base PRIVATE
+        -Wno-microsoft-cast
+        -Wno-int-to-pointer-cast
+    )
+endif()
+
 if(WIN32)
     target_link_libraries(chromium_base PUBLIC
         user32 ws2_32 shell32 advapi32 psapi kernel32 userenv

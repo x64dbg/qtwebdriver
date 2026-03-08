@@ -348,9 +348,13 @@ class BASE_EXPORT DictionaryValue : public Value {
   // YOU SHOULD ALWAYS USE THE XXXWithoutPathExpansion() APIs WITH THESE, NOT
   // THE NORMAL XXX() APIs.  This makes sure things will work correctly if any
   // keys have '.'s in them.
-  class BASE_EXPORT key_iterator
-      : private std::iterator<std::input_iterator_tag, const std::string> {
+  class BASE_EXPORT key_iterator {
    public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = const std::string;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const std::string*;
+    using reference = const std::string&;
     explicit key_iterator(ValueMap::const_iterator itr);
     // Not explicit, because this is a copy constructor.
     key_iterator(const key_iterator& rhs);

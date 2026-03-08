@@ -233,7 +233,7 @@ int Server::Stop(bool force) {
 
 // Maximum safe size of HTTP response message. Any larger than this,
 // the message may not be transferred at all.
-const size_t kMaxHttpMessageSize = 1024 * 1024 * 16;  // 16MB
+[[maybe_unused]] const size_t kMaxHttpMessageSize = 1024 * 1024 * 16;  // 16MB
 
 // mongoose callback
 void* Server::ProcessHttpRequestCb(int event_raised,

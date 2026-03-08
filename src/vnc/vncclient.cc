@@ -337,6 +337,8 @@ void VNCClient::onError(QAbstractSocket::SocketError error)
         _logger->Log(kWarningLogLevel, base::Time::Now(), "Socket error: ProxyProtocolError"); break;
     case QAbstractSocket::UnknownSocketError:
         _logger->Log(kWarningLogLevel, base::Time::Now(), "Socket error: UnknownSocketError"); break;
+    default:
+        _logger->Log(kWarningLogLevel, base::Time::Now(), "Socket error: (unknown)"); break;
     }
 }
 

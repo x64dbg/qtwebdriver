@@ -98,9 +98,12 @@ bool Delete(const FilePath& path, bool recursive) {
   // into the rest of the buffer.
   wchar_t double_terminated_path[MAX_PATH + 1] = {0};
 #pragma warning(suppress:4996)  // don't complain about wcscpy deprecation
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   if (g_bug108724_debug)
     LOG(WARNING) << "copying ";
   wcscpy(double_terminated_path, path.value().c_str());
+#pragma clang diagnostic pop
 
   SHFILEOPSTRUCT file_operation = {0};
   file_operation.wFunc = FO_DELETE;
@@ -219,9 +222,11 @@ bool ShellCopy(const FilePath& from_path, const FilePath& to_path,
   wchar_t double_terminated_path_from[MAX_PATH + 1] = {0};
   wchar_t double_terminated_path_to[MAX_PATH + 1] = {0};
 #pragma warning(suppress:4996)  // don't complain about wcscpy deprecation
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   wcscpy(double_terminated_path_from, from_path.value().c_str());
-#pragma warning(suppress:4996)  // don't complain about wcscpy deprecation
   wcscpy(double_terminated_path_to, to_path.value().c_str());
+#pragma clang diagnostic pop
 
   SHFILEOPSTRUCT file_operation = {0};
   file_operation.wFunc = FO_COPY;
@@ -649,10 +654,10 @@ bool SetCurrentDirectory(const FilePath& directory) {
 FileEnumerator::FileEnumerator(const FilePath& root_path,
                                bool recursive,
                                int file_type)
-    : recursive_(recursive),
-      file_type_(file_type),
-      has_find_data_(false),
-      find_handle_(INVALID_HANDLE_VALUE) {
+    : has_find_data_(false),
+      find_handle_(INVALID_HANDLE_VALUE),
+      recursive_(recursive),
+      file_type_(file_type) {
   // INCLUDE_DOT_DOT must not be specified if recursive.
   DCHECK(!(recursive && (INCLUDE_DOT_DOT & file_type_)));
   memset(&find_data_, 0, sizeof(find_data_));
@@ -663,11 +668,11 @@ FileEnumerator::FileEnumerator(const FilePath& root_path,
                                bool recursive,
                                int file_type,
                                const FilePath::StringType& pattern)
-    : recursive_(recursive),
+    : has_find_data_(false),
+      find_handle_(INVALID_HANDLE_VALUE),
+      recursive_(recursive),
       file_type_(file_type),
-      has_find_data_(false),
-      pattern_(pattern),
-      find_handle_(INVALID_HANDLE_VALUE) {
+      pattern_(pattern) {
   // INCLUDE_DOT_DOT must not be specified if recursive.
   DCHECK(!(recursive && (INCLUDE_DOT_DOT & file_type_)));
   memset(&find_data_, 0, sizeof(find_data_));
@@ -780,8 +785,8 @@ FilePath FileEnumerator::Next() {
 // MemoryMappedFile
 
 MemoryMappedFile::MemoryMappedFile()
-    : file_(INVALID_HANDLE_VALUE),
-      file_mapping_(INVALID_HANDLE_VALUE),
+    : file_mapping_(INVALID_HANDLE_VALUE),
+      file_(INVALID_HANDLE_VALUE),
       data_(NULL),
       length_(INVALID_FILE_SIZE) {
 }

@@ -193,11 +193,32 @@
 //
 // The workaround is to explicitly declare your copy constructor.
 //
+#if __cplusplus >= 201103L
+
+#include <utility>
+
+// C++11: use real move semantics. typedef rvalue_type as the type itself so
+// existing code like scoped_ptr(RValue& other) compiles as a non-const lvalue
+// ref constructor (the reinterpret_cast in the body is a no-op). Pass()
+// returns an rvalue reference via std::move.
+#define MOVE_ONLY_TYPE_FOR_CPP_03(type, rvalue_type) \
+ private: \
+  typedef type rvalue_type; \
+  type(const type&) = delete; \
+  void operator=(const type&) = delete; \
+ public: \
+  type&& Pass() { return std::move(*this); } \
+ private:
+
+#else
+
 #define MOVE_ONLY_TYPE_FOR_CPP_03(type, rvalue_type) \
  public: \
   type Pass() { return static_cast<type&&>(*this); } \
  private: \
   type(const type&) = delete; \
   void operator=(const type&) = delete;
+
+#endif  // __cplusplus >= 201103L
 
 #endif  // BASE_MOVE_H_

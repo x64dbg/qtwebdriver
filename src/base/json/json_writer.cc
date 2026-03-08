@@ -91,8 +91,8 @@ void JSONWriter::BuildJSONString(const Value* const node, int depth) {
         bool result = node->GetAsDouble(&value);
         DCHECK(result);
         if (omit_double_type_preservation_ &&
-            value <= kint64max &&
-            value >= kint64min &&
+            value <= static_cast<double>(kint64max) &&
+            value >= static_cast<double>(kint64min) &&
             std::floor(value) == value) {
           json_string_->append(Int64ToString(static_cast<int64>(value)));
           break;

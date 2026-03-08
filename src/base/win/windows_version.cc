@@ -34,7 +34,11 @@ OSInfo::OSInfo()
       architecture_(OTHER_ARCHITECTURE),
       wow64_status_(GetWOW64StatusForProcess(GetCurrentProcess())) {
   OSVERSIONINFOEX version_info = { sizeof version_info };
+#pragma warning(suppress:4996)  // GetVersionEx deprecated but still works
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   GetVersionEx(reinterpret_cast<OSVERSIONINFO*>(&version_info));
+#pragma clang diagnostic pop
   version_number_.major = version_info.dwMajorVersion;
   version_number_.minor = version_info.dwMinorVersion;
   version_number_.build = version_info.dwBuildNumber;
@@ -64,7 +68,7 @@ OSInfo::OSInfo()
   service_pack_.major = version_info.wServicePackMajor;
   service_pack_.minor = version_info.wServicePackMinor;
 
-  SYSTEM_INFO system_info = { 0 };
+  SYSTEM_INFO system_info = {};
   GetNativeSystemInfo(&system_info);
   switch (system_info.wProcessorArchitecture) {
     case PROCESSOR_ARCHITECTURE_INTEL: architecture_ = X86_ARCHITECTURE; break;

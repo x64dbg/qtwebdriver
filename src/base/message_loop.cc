@@ -94,7 +94,7 @@ MessageLoop::MessagePumpFactory* message_pump_for_ui_factory_ = NULL;
 // Create a process-wide unique ID to represent this task in trace events. This
 // will be mangled with a Process ID hash to reduce the likelyhood of colliding
 // with MessageLoop pointers on other processes.
-uint64 GetTaskTraceID(const PendingTask& task, MessageLoop* loop) {
+[[maybe_unused]] uint64 GetTaskTraceID(const PendingTask& task, MessageLoop* loop) {
   return (static_cast<uint64>(task.sequence_num) << 32) |
          static_cast<uint64>(reinterpret_cast<intptr_t>(loop));
 }
@@ -456,8 +456,8 @@ void MessageLoop::RunTask(const PendingTask& pending_task) {
   // crashes. Be careful not to assume that the variable itself will have the
   // expected value when displayed by the optimizer in an optimized build.
   // Look at a memory dump of the stack.
-  const void* program_counter =
-      pending_task.posted_from.program_counter();
+//  const void* program_counter =
+//      pending_task.posted_from.program_counter();
 //  base::debug::Alias(&program_counter);
 
   HistogramEvent(kTaskRunEvent);

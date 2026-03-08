@@ -79,6 +79,14 @@ target_include_directories(WebDriver_core
         ${PROJECT_SOURCE_DIR}/src/third_party/mongoose
 )
 
+# Suppress Winsock deprecation warnings in third-party mongoose
+if(WD_BUILD_MONGOOSE AND WIN32)
+    set_source_files_properties(
+        ${PROJECT_SOURCE_DIR}/src/third_party/mongoose/mongoose.c
+        PROPERTIES COMPILE_DEFINITIONS "_WINSOCK_DEPRECATED_NO_WARNINGS"
+    )
+endif()
+
 target_link_libraries(WebDriver_core PUBLIC chromium_base)
 
 # Installation

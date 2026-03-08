@@ -107,7 +107,7 @@ PR_ImplodeTime(const PRExplodedTime *exploded)
    // Create the system struct representing our exploded time.
     SYSTEMTIME st = {0};
     FILETIME ft = {0};
-    ULARGE_INTEGER uli = {0};
+    ULARGE_INTEGER uli = {};
 
     st.wYear = exploded->tm_year;
     st.wMonth = exploded->tm_month + 1;

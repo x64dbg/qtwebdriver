@@ -302,7 +302,9 @@ int64 ComputeDirectorySize(const FilePath& root_path) {
     FileEnumerator::FindInfo info;
     file_iter.GetFindInfo(&info);
 #if defined(OS_WIN)
-    LARGE_INTEGER li = { {info.nFileSizeLow, static_cast<LONG>(info.nFileSizeHigh)} };
+    LARGE_INTEGER li;
+    li.LowPart = info.nFileSizeLow;
+    li.HighPart = static_cast<LONG>(info.nFileSizeHigh);
     running_size += li.QuadPart;
 #else
     running_size += info.stat.st_size;
@@ -320,7 +322,9 @@ int64 ComputeFilesSize(const FilePath& directory,
     FileEnumerator::FindInfo info;
     file_iter.GetFindInfo(&info);
 #if defined(OS_WIN)
-    LARGE_INTEGER li = { {info.nFileSizeLow, static_cast<LONG>(info.nFileSizeHigh)} };
+    LARGE_INTEGER li;
+    li.LowPart = info.nFileSizeLow;
+    li.HighPart = static_cast<LONG>(info.nFileSizeHigh);
     running_size += li.QuadPart;
 #else
     running_size += info.stat.st_size;

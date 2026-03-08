@@ -47,11 +47,11 @@ bool QWidgetViewCreator::CreateViewByClassName(const Logger& logger, const std::
     if (factory.empty())
         return false;
 
-	if (className.empty() || className == "WidgetView") {
-		// get first registered
+    if (className.empty() || className == "WidgetView") {
+        // get first registered
         CreateViewMethod createMethod = factory.begin()->second;
         handle = new QViewHandle(static_cast<QWidget*>(createMethod()));
-	} else {
+    } else {
     	FactoryMap::const_iterator it = factory.find(className);
         if (it != factory.end())
         {

@@ -45,11 +45,11 @@ bool Quick2ViewCreator::CreateViewByClassName(const Logger& logger, const std::s
     if (factory.empty())
         return false;
 
-	if (className.empty() || className == "QMLView") {
-		// get first found QML view
+    if (className.empty() || className == "QMLView") {
+        // get first found QML view
         CreateViewMethod createMethod = factory.begin()->second;
         handle = new QWindowViewHandle(static_cast<QWindow*>(createMethod()));
-	} else {
+    } else {
     	FactoryMap::const_iterator it = factory.find(className);
         if (it != factory.end())
         {

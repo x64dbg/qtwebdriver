@@ -26,6 +26,7 @@
 class EventDispatcher
 {
 public:
+    virtual ~EventDispatcher() = default;
 
     /// Abstract method, should be implemented in descendants
     virtual bool dispatch(QEvent *event, bool consumed)=0;

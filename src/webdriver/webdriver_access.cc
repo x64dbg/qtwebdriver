@@ -174,7 +174,7 @@ bool AccessValidator::convertIpString(const char *str_ip, long *int_ip)
 
     char buff[sizeof "000.000.000.000"];
     if (strlen(str_ip) < sizeof buff) {
-        strcpy(buff, str_ip);
+        snprintf(buff, sizeof buff, "%s", str_ip);
     }
 
     for (p = buff; *p != '\0' ; ++p) {

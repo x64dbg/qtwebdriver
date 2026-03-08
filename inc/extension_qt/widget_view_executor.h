@@ -51,6 +51,7 @@ public:
     virtual void GoBack(Error** error) NOT_SUPPORTED_IMPL;
     virtual void Reload(Error** error) NOT_SUPPORTED_IMPL;
     virtual void GetSource(std::string* source, Error** error);
+    using QViewCmdExecutor::SendKeys;
     virtual void SendKeys(const ElementId& element, const string16& keys, Error** error);
     virtual void GetElementScreenShot(const ElementId& element, std::string* png, Error** error);
     virtual void MouseDoubleClick(Error** error);
