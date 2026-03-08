@@ -37,17 +37,7 @@ void SessionWithID::ExecuteGet(Response* const response) {
 }
 
 void SessionWithID::ExecuteDelete(Response* const response) {
-    // close all views
-    std::vector<ViewId> views;
-
-    session_->RunSessionTask(base::Bind(
-        &ViewEnumerator::EnumerateViews,
-        session_,
-        &views));
-
-    for (size_t i = 0; i < views.size(); ++i) {
-        CloseView(views[i]);
-    }
+    // Do NOT close views - x64dbg owns the windows, not WebDriver.
     // Session manages its own lifetime, so do not call delete.
     session_->Terminate();
 }
